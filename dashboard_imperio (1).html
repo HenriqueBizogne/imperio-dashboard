@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Império Imobiliária</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161922;
+  --bg3: #1e2330;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f2f8;
+  --text2: #8b91a8;
+  --text3: #555d73;
+  --blue: #4a8fff;
+  --green: #3ecf8e;
+  --red: #f5695e;
+  --amber: #f9a23d;
+  --purple: #9b7fff;
+  --accent: #4a8fff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; }
+a { color: var(--blue); }
+
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+.logo-sub { font-size: 12px; color: var(--text2); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+#lastUpdate { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+.main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+.filters {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+  align-items: center;
+}
+.filters label { font-size: 12px; color: var(--text2); margin-right: 4px; }
+.filters select {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--text);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: border-color .2s;
+}
+.filters select:hover { border-color: var(--blue); }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.btn-reset {
+  background: transparent; border: 1px solid var(--border2); color: var(--text2);
+  border-radius: 8px; padding: 6px 14px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all .2s; margin-left: auto;
+}
+.btn-reset:hover { border-color: var(--blue); color: var(--blue); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 1.5rem; }
+.kpi {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 1.25rem 1.5rem; position: relative; overflow: hidden;
+  transition: border-color .2s;
+}
+.kpi:hover { border-color: var(--border2); }
+.kpi-accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 12px 0 0 12px; }
+.kpi-label { font-size: 12px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.kpi-val { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; }
+.kpi-sub { font-size: 12px; color: var(--text3); }
+
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+.card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;
+}
+.card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin-bottom: 1rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.chart-wrap { position: relative; }
+
+.full-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+.card-note { font-size: 11px; color: var(--text3); margin-bottom: 12px; font-family: 'DM Mono', monospace; line-height: 1.5; }
+
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); white-space: nowrap; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+tr:hover td { background: var(--bg3); }
+.nome-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.b-apr { background: rgba(62,207,142,.15); color: #3ecf8e; }
+.b-rep { background: rgba(245,105,94,.15); color: #f5695e; }
+.b-con { background: rgba(249,162,61,.15); color: #f9a23d; }
+.b-agu { background: rgba(74,143,255,.15); color: #4a8fff; }
+.b-can { background: rgba(139,145,168,.1); color: #8b91a8; }
+.b-ass { background: rgba(155,127,255,.15); color: #9b7fff; }
+
+.com-val { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--blue); }
+.fin-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); }
+
+.stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+
+.section-divider { display: flex; align-items: center; gap: 12px; margin: 1.5rem 0 1rem; }
+.section-divider-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); white-space: nowrap; }
+.section-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .main { padding: 1rem; }
+}
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .stat-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏠</div>
+    <div>
+      <div class="logo-text">Império Imobiliária</div>
+      <div class="logo-sub">CRM Dashboard — Operador: Henrique</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="lastUpdate"></span>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="filters">
+    <div class="filter-group"><label>Mês</label><select id="fMes"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Banco</label><select id="fBanco"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Resultado</label><select id="fResult"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label>Modalidade</label><select id="fModal"><option value="">Todas</option></select></div>
+    <button class="btn-reset" onclick="resetFilters()">Limpar filtros</button>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Total operações</div><div class="kpi-val" id="kTotal">—</div><div class="kpi-sub" id="kTotalSub"></div></div>
+    <div class="kpi"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Aprovados + Assinados</div><div class="kpi-val" style="color:var(--green)" id="kAprov">—</div><div class="kpi-sub" id="kAprovSub"></div></div>
+    <div class="kpi"><div class="kpi-accent" style="background:var(--amber)"></div><div class="kpi-label">Em tratativa</div><div class="kpi-val" style="color:var(--amber)" id="kTrat">—</div><div class="kpi-sub" id="kTratSub"></div></div>
+    <div class="kpi"><div class="kpi-accent" style="background:var(--purple)"></div><div class="kpi-label">Previsão comissão</div><div class="kpi-val" style="color:var(--purple)" id="kComis">—</div><div class="kpi-sub" id="kComisSub"></div></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Resultados</div>
+      <div class="legend" id="leg1"></div>
+      <div class="chart-wrap" style="height:190px"><canvas id="ch1" role="img" aria-label="Resultados das operações">Distribuição de resultados.</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Operações por banco</div>
+      <div class="legend" id="leg2"></div>
+      <div class="chart-wrap" style="height:190px"><canvas id="ch2" role="img" aria-label="Operações por banco">Operações por banco.</canvas></div>
+    </div>
+  </div>
+
+  <div class="full-card">
+    <div class="card-title">Previsão de comissão por mês (R$)</div>
+    <div class="card-note">APROVADO + status ASSINADO &nbsp;|&nbsp; Caixa 0,8% (NPMCMV-ISOLADO, SBPE) &nbsp;|&nbsp; Itaú 1% &nbsp;|&nbsp; Santander 1,3% (LC/HE 3%) &nbsp;|&nbsp; Bradesco 1,5% &nbsp;|&nbsp; Inter 0,8%</div>
+    <div class="legend" id="leg3"></div>
+    <div class="chart-wrap" style="height:220px"><canvas id="ch3" role="img" aria-label="Previsão de comissão mensal">Previsão financeira mensal.</canvas></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Cenário em tratativa</div>
+      <div class="legend" id="leg4"></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="ch4" role="img" aria-label="Operações em tratativa por status">Tratativas por status.</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Comissão por banco</div>
+      <div class="legend" id="leg5"></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="ch5" role="img" aria-label="Comissão por banco">Comissão por banco.</canvas></div>
+    </div>
+  </div>
+
+  <div class="full-card">
+    <div class="card-title" style="margin-bottom:1rem">Detalhamento por operação</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Data</th><th>Proponente</th><th>Banco</th><th>Modalidade</th>
+          <th>Resultado</th><th>Status</th><th>Financiamento</th><th>Comissão prev.</th>
+        </tr></thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const RAW = [
+  {data:"19/03/2026",nome:"REBECA SOUZA SILVA NOGUEIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CONFIRMAÇÃO DE VALORES",fin:145855.99,obs:""},
+  {data:"19/03/2026",nome:"LETICIA SOARES MOREIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CERTIFICADO",fin:137000,obs:""},
+  {data:"19/03/2026",nome:"PEDRO HENRIQUE DE SOUZA NOTARANGELI",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"19/03/2026",nome:"VALDINEIA DE JESUS PEREIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"19/03/2026",nome:"LUANNY ROCHA AVALOS YANO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:196800,obs:""},
+  {data:"20/03/2026",nome:"VICTOR PIEROBOM DE ALMEIDA",banco:"CAIXA",modal:"NPMCMV-ISOLADO",result:"APROVADO",status:"ASSINADO",fin:184000,obs:""},
+  {data:"20/03/2026",nome:"LUCINEIDE GUEDES TOTE",banco:"CAIXA",modal:"SBPE-EMPREENDIMENTO",result:"APROVADO",status:"COMITÊ APROVAÇÃO",fin:457092.78,obs:""},
+  {data:"20/03/2026",nome:"JANAINA VARGAS GALO IWASSE",banco:"CAIXA",modal:"SBPE-ISOLADO",result:"APROVADO",status:"ASSINADO",fin:178500,obs:""},
+  {data:"20/03/2026",nome:"GIULIANO MAXIMOS MARTINS",banco:"CAIXA",modal:"SBPE-ISOLADO",result:"APROVADO",status:"ENGENHARIA/LAUDO",fin:1800000,obs:""},
+  {data:"20/03/2026",nome:"BRUNA LOUVEIRA FERREIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CONFIRMAÇÃO DE VALORES",fin:0,obs:""},
+  {data:"20/03/2026",nome:"VINICIUS AUGUSTO RODRIGUES BRITTO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"PENDÊNCIA",fin:0,obs:""},
+  {data:"21/03/2026",nome:"ELIANE DA SILVA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"AGUARDANDO",status:"AGUARDANDO DOCUMENTOS",fin:0,obs:""},
+  {data:"21/03/2026",nome:"CRISTIANE NUNES ALENCAR",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"AGUARDANDO DEMANDA MINIMA",fin:0,obs:""},
+  {data:"21/03/2026",nome:"PAULO HENRIQUE DA SILVA OLIVEIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"AGUARDANDO DEMANDA MINIMA",fin:0,obs:""},
+  {data:"21/03/2026",nome:"STANLEY PEREIRA AVALO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"21/03/2026",nome:"GISLAINE DE CASTRO MARCELO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"AGUARDANDO DEMANDA MINIMA",fin:168000,obs:""},
+  {data:"21/03/2026",nome:"ALDO CHAVES DA SILVA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"AGUARDANDO DEMANDA MINIMA",fin:168000,obs:""},
+  {data:"21/03/2026",nome:"FATIMA DELMONE DA CONCEICAO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"AGUARDANDO DEMANDA MINIMA",fin:156000,obs:""},
+  {data:"21/03/2026",nome:"RAQUEL FONSECA DA SILVA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"AGUARDANDO DEMANDA MINIMA",fin:0,obs:""},
+  {data:"21/03/2026",nome:"ANA JULIA SILVA LOPES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"23/03/2026",nome:"THYERRI LOPES DE MELO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CERTIFICADO",fin:0,obs:""},
+  {data:"24/03/2026",nome:"LORRAINY DO NASCIMENTO PENTEADO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"24/03/2026",nome:"RENATA APARECIDA DA SILVA DIAS",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"24/03/2026",nome:"NOEMI CRISTINA DE OLIVEIRA LOPES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"24/03/2026",nome:"YANCA VIEIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"24/03/2026",nome:"KAMILA PEREIRA SIMOES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"CONDICIONADO",status:"",fin:0,obs:""},
+  {data:"24/03/2026",nome:"ANA WIVIAN CALDEIRA MAGALHAES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CONFORMIDADE",fin:144801.20,obs:""},
+  {data:"24/03/2026",nome:"KHAROLAYNE PATRICIA NOGUEIRA DO AMARAL",banco:"CAIXA",modal:"NPMCMV-ISOLADO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"24/03/2026",nome:"ROSANA DA CUNHA SILVA SOUSA",banco:"CAIXA",modal:"SBPE-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"25/03/2026",nome:"GIOVANNA SANTOS GONCALE",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CONFORMIDADE",fin:150488.23,obs:""},
+  {data:"25/03/2026",nome:"BRUNO OLIVEIRA DA COSTA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"25/03/2026",nome:"TATIANE PIMENTEL FERREIRA",banco:"CAIXA",modal:"NPMCMV-ISOLADO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"25/03/2026",nome:"CHRISTIAN RODRIGUES NERY",banco:"CAIXA",modal:"SBPE-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"26/03/2026",nome:"GABRIEL CARDOSO DE SOUZA CHUVER",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"26/03/2026",nome:"CARLOS EDUARDO RIBEIRO BORGES",banco:"CAIXA",modal:"NPMCMV-ISOLADO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"26/03/2026",nome:"BRENDA DIAS DO AMARAL",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"27/03/2026",nome:"VINICIUS MELO ARANDA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"27/03/2026",nome:"POLLYANA PAIVA PEREIRA MOURAO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"27/03/2026",nome:"LENNON HUDSON RODRIGUES JARA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"27/03/2026",nome:"JESSICA BARBOSA DA SILVA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"27/03/2026",nome:"EDSON APARECIDO LOURENCO DIAS",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"REPROVADO",status:"CANCELADO",fin:0,obs:""},
+  {data:"27/03/2026",nome:"CAMILA MICAELA DE OLIVEIRA FONSECA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"",fin:0,obs:""},
+  {data:"28/03/2026",nome:"MARCO ANTONIO VIANA PROENÇA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:155660.01,obs:""},
+  {data:"28/03/2026",nome:"MARLON LOPES CABRAL",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"CONFORMIDADE",fin:143411.94,obs:""},
+  {data:"28/03/2026",nome:"ARIANE PEREIRA BITENCOURT",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:155524.07,obs:""},
+  {data:"28/03/2026",nome:"YADIRA FRANCIELLY TEODORO GUTIERRES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:136049.46,obs:""},
+  {data:"28/03/2026",nome:"RAFAEL PEREIRA BATISTA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:190889.39,obs:""},
+  {data:"28/03/2026",nome:"PEDRO HENRIQUE DA COSTA MARTINEZ",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:163434.30,obs:""},
+  {data:"28/03/2026",nome:"DJANE ALVES GOMES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:197636.40,obs:""},
+  {data:"28/03/2026",nome:"MUNIR RAZUK NETO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:146238.84,obs:""},
+  {data:"28/03/2026",nome:"GUSTAVO HENRIQUE CAPLI DA SILVA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:172124.44,obs:""},
+  {data:"28/03/2026",nome:"LIARA DE SOUZA COIMBRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:166872.85,obs:""},
+  {data:"28/03/2026",nome:"BRUNO PENZE RIBEIRO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:136823.41,obs:""},
+  {data:"28/03/2026",nome:"ELENIR SANTOS POMPEO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:264640,obs:""},
+  {data:"28/03/2026",nome:"FERNANDA DE PAULA CHAVES",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:199928,obs:""},
+  {data:"28/03/2026",nome:"EVELYN DE OLIVEIRA BRITO",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:145794.29,obs:""},
+  {data:"28/03/2026",nome:"DIEGO FERNANDES SILVA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:267968,obs:""},
+  {data:"28/03/2026",nome:"RODRIGO SANTOS FERREIRA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:145461.59,obs:""},
+  {data:"28/03/2026",nome:"EMYLEE DA CRUZ FERRACIOLLI",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:163209.43,obs:""},
+  {data:"28/03/2026",nome:"BEATRIZ RODRIGUES ALMEIDA CABRAL",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:135718,obs:""},
+  {data:"28/03/2026",nome:"ARIANE DE MELO PEREIRA HOFF",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:200000,obs:""},
+  {data:"28/03/2026",nome:"KAREN FLORENTINO AZEVEDO",banco:"CAIXA",modal:"NPMCMV-ISOLADO",result:"APROVADO",status:"ASSINADO",fin:145235.47,obs:""},
+  {data:"28/03/2026",nome:"ABRAAO LUCAS VENANCIO DE SOUZA",banco:"CAIXA",modal:"NPMCMV-EMPREENDIMENTO",result:"APROVADO",status:"ASSINADO",fin:157239.70,obs:""},
+];
+
+const COMISSAO_RULES = [
+  {banco:"CAIXA", modais:["NPMCMV-ISOLADO","SBPE-EMPREENDIMENTO","SBPE-ISOLADO"], pct:0.008},
+  {banco:"ITAU", modais:null, pct:0.01},
+  {banco:"SANTANDER", modais:null, pct:0.013},
+  {banco:"BRADESCO", modais:null, pct:0.015},
+  {banco:"INTER", modais:null, pct:0.008},
+];
+const TRATATIVA_STATUS = ["AGUARDANDO DOCUMENTOS","CONFIRMAÇÃO DE VALORES","CERTIFICADO","CONFORMIDADE","ENGENHARIA/LAUDO","COMITÊ APROVAÇÃO"];
+const BANCO_COLORS = {"CAIXA":"#4a8fff","ITAU":"#f9a23d","SANTANDER":"#f5695e","BRADESCO":"#3ecf8e","INTER":"#9b7fff"};
+
+function elegivel(r){ return r.result==="APROVADO" || r.status==="ASSINADO"; }
+
+function getComissao(r){
+  if(!elegivel(r)||!r.fin) return 0;
+  const b=r.banco.toUpperCase(), o=(r.obs||"").toUpperCase(), m=(r.modal||"").toUpperCase();
+  if(b==="SANTANDER"&&(o.includes("HOME EQUITY")||o.includes("LC")||m.includes("LC"))) return r.fin*0.03;
+  for(const rule of COMISSAO_RULES){
+    if(b===rule.banco){
+      if(rule.modais===null) return r.fin*rule.pct;
+      if(rule.modais.includes(r.modal)) return r.fin*rule.pct;
+    }
+  }
+  return 0;
+}
+
+function getMes(d){ const [dd,mm,yy]=d.split("/"); return `${yy}-${mm}`; }
+function getMesLabel(k){ const meses=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],[y,m]=k.split("-"); return `${meses[parseInt(m)-1]}/${y.slice(2)}`; }
+function fmtBRL(v){ return "R$ "+Math.round(v).toLocaleString("pt-BR"); }
+function isTratativa(r){ return TRATATIVA_STATUS.includes(r.status); }
+
+let charts={};
+function dc(){ for(const k in charts){try{charts[k].destroy();}catch(e){}} charts={}; }
+
+function render(data){
+  dc();
+  document.getElementById("lastUpdate").textContent = "Atualizado: "+new Date().toLocaleString("pt-BR");
+
+  const total=data.length;
+  const aprov=data.filter(elegivel).length;
+  const trat=data.filter(isTratativa).length;
+  const rep=data.filter(r=>r.result==="REPROVADO").length;
+  const comis=data.reduce((s,r)=>s+getComissao(r),0);
+  const tx=total>0?Math.round(aprov/total*100):0;
+
+  document.getElementById("kTotal").textContent=total;
+  document.getElementById("kTotalSub").textContent=`${rep} reprovados`;
+  document.getElementById("kAprov").textContent=aprov;
+  document.getElementById("kAprovSub").textContent=`Taxa: ${tx}%`;
+  document.getElementById("kTrat").textContent=trat;
+  document.getElementById("kTratSub").textContent=`${TRATATIVA_STATUS.length} status monitorados`;
+  document.getElementById("kComis").textContent=fmtBRL(comis);
+  document.getElementById("kComisSub").textContent=`sobre financiamentos elegíveis`;
+
+  // Chart 1 — Resultados
+  const rc={};
+  data.forEach(r=>{rc[r.result||"—"]=(rc[r.result||"—"]||0)+1;});
+  const rL=Object.keys(rc), rC={"APROVADO":"#3ecf8e","REPROVADO":"#f5695e","CONDICIONADO":"#f9a23d","AGUARDANDO":"#4a8fff","—":"#555d73"};
+  document.getElementById("leg1").innerHTML=rL.map(l=>`<span class="leg-item"><span class="leg-dot" style="background:${rC[l]||'#888'}"></span>${l} (${rc[l]})</span>`).join("");
+  charts.ch1=new Chart(document.getElementById("ch1"),{type:"doughnut",data:{labels:rL,datasets:[{data:rL.map(l=>rc[l]),backgroundColor:rL.map(l=>rC[l]||"#888"),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:"65%",plugins:{legend:{display:false}}}});
+
+  // Chart 2 — Por banco
+  const bc={};
+  data.forEach(r=>{bc[r.banco]=(bc[r.banco]||0)+1;});
+  const bL=Object.keys(bc).sort((a,b)=>bc[b]-bc[a]);
+  document.getElementById("leg2").innerHTML=bL.map(l=>`<span class="leg-item"><span class="leg-dot" style="background:${BANCO_COLORS[l]||'#888'}"></span>${l} (${bc[l]})</span>`).join("");
+  charts.ch2=new Chart(document.getElementById("ch2"),{type:"bar",data:{labels:bL,datasets:[{data:bL.map(l=>bc[l]),backgroundColor:bL.map(l=>BANCO_COLORS[l]||"#888"),borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:"rgba(255,255,255,0.05)"},ticks:{color:"#555d73",stepSize:1}},x:{grid:{display:false},ticks:{color:"#8b91a8",autoSkip:false}}}}});
+
+  // Chart 3 — Comissão por mês
+  const mc={};
+  data.forEach(r=>{const m=getMes(r.data);mc[m]=(mc[m]||0)+getComissao(r);});
+  const mK=Object.keys(mc).sort();
+  document.getElementById("leg3").innerHTML=`<span class="leg-item"><span class="leg-dot" style="background:#9b7fff"></span>Comissão prevista (APROVADO + ASSINADO)</span>`;
+  charts.ch3=new Chart(document.getElementById("ch3"),{type:"bar",data:{labels:mK.map(getMesLabel),datasets:[{data:mK.map(k=>Math.round(mc[k])),backgroundColor:"#9b7fff",borderRadius:6,borderSkipped:false,label:"Comissão"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:"rgba(255,255,255,0.05)"},ticks:{color:"#555d73",callback:v=>"R$ "+v.toLocaleString("pt-BR")}},x:{grid:{display:false},ticks:{color:"#8b91a8",autoSkip:false,maxRotation:0}}}}});
+
+  // Chart 4 — Tratativas
+  const ts={};
+  data.filter(isTratativa).forEach(r=>{ts[r.status]=(ts[r.status]||0)+1;});
+  const tK=Object.keys(ts).sort((a,b)=>ts[b]-ts[a]);
+  const tC=["#4a8fff","#3ecf8e","#f9a23d","#9b7fff","#f5695e","#e879f9"];
+  document.getElementById("leg4").innerHTML=tK.map((l,i)=>`<span class="leg-item"><span class="leg-dot" style="background:${tC[i%tC.length]}"></span>${l} (${ts[l]})</span>`).join("");
+  charts.ch4=new Chart(document.getElementById("ch4"),{type:"bar",data:{labels:tK,datasets:[{data:tK.map(k=>ts[k]),backgroundColor:tK.map((_,i)=>tC[i%tC.length]),borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:"rgba(255,255,255,0.05)"},ticks:{color:"#555d73",stepSize:1}},x:{grid:{display:false},ticks:{color:"#8b91a8",autoSkip:false,maxRotation:30,font:{size:11}}}}}});
+
+  // Chart 5 — Comissão por banco
+  const bcom={};
+  data.forEach(r=>{const c=getComissao(r);if(c>0)bcom[r.banco]=(bcom[r.banco]||0)+c;});
+  const bcL=Object.keys(bcom).sort((a,b)=>bcom[b]-bcom[a]);
+  document.getElementById("leg5").innerHTML=bcL.map(l=>`<span class="leg-item"><span class="leg-dot" style="background:${BANCO_COLORS[l]||'#888'}"></span>${l}: ${fmtBRL(bcom[l])}</span>`).join("");
+  charts.ch5=new Chart(document.getElementById("ch5"),{type:"doughnut",data:{labels:bcL,datasets:[{data:bcL.map(l=>Math.round(bcom[l])),backgroundColor:bcL.map(l=>BANCO_COLORS[l]||"#888"),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:"60%",plugins:{legend:{display:false}}}});
+
+  // Tabela
+  const tbody=document.getElementById("tblBody");
+  tbody.innerHTML="";
+  const bm={"APROVADO":"b-apr","REPROVADO":"b-rep","CONDICIONADO":"b-con","AGUARDANDO":"b-agu","":"b-can"};
+  const sm={"ASSINADO":"b-ass"};
+  data.forEach(r=>{
+    const com=getComissao(r);
+    const statusBadge=r.status==="ASSINADO"?"b-ass":"";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td style="color:#555d73;font-family:'DM Mono',monospace;font-size:12px">${r.data}</td>
+      <td class="nome-cell">${r.nome}</td>
+      <td><span style="color:${BANCO_COLORS[r.banco]||'#888'};font-weight:600;font-size:12px">${r.banco}</span></td>
+      <td style="font-size:11px;color:#555d73">${r.modal}</td>
+      <td><span class="badge ${bm[r.result]||'b-can'}">${r.result||"—"}</span></td>
+      <td>${r.status?`<span class="badge ${statusBadge||'b-can'}" style="${!statusBadge?'background:transparent;color:#555d73':''}">${r.status}</span>`:"—"}</td>
+      <td class="fin-val">${r.fin?fmtBRL(r.fin):"—"}</td>
+      <td class="${com>0?'com-val':''}" style="${com>0?'':'color:#555d73'}">${com>0?fmtBRL(com):"—"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function populateFilters(){
+  const meses=[...new Set(RAW.map(r=>getMes(r.data)))].sort();
+  const bancos=[...new Set(RAW.map(r=>r.banco))].sort();
+  const results=[...new Set(RAW.map(r=>r.result))].filter(Boolean).sort();
+  const modais=[...new Set(RAW.map(r=>r.modal))].filter(Boolean).sort();
+  const add=(id,vals,label)=>{vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;document.getElementById(id).appendChild(o);});};
+  add("fMes",meses.map(getMesLabel).map((l,i)=>({v:meses[i],l})).map(x=>{const o=document.createElement("option");o.value=x.v;o.textContent=x.l;document.getElementById("fMes").appendChild(o);}));
+  bancos.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;document.getElementById("fBanco").appendChild(o);});
+  results.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;document.getElementById("fResult").appendChild(o);});
+  modais.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;document.getElementById("fModal").appendChild(o);});
+}
+
+function applyFilters(){
+  const mes=document.getElementById("fMes").value;
+  const banco=document.getElementById("fBanco").value;
+  const result=document.getElementById("fResult").value;
+  const modal=document.getElementById("fModal").value;
+  let d=RAW;
+  if(mes) d=d.filter(r=>getMes(r.data)===mes);
+  if(banco) d=d.filter(r=>r.banco===banco);
+  if(result) d=d.filter(r=>r.result===result);
+  if(modal) d=d.filter(r=>r.modal===modal);
+  render(d);
+}
+
+function resetFilters(){
+  ["fMes","fBanco","fResult","fModal"].forEach(id=>document.getElementById(id).value="");
+  render(RAW);
+}
+
+Chart.defaults.color="#555d73";
+Chart.defaults.borderColor="rgba(255,255,255,0.05)";
+populateFilters();
+render(RAW);
+["fMes","fBanco","fResult","fModal"].forEach(id=>document.getElementById(id).addEventListener("change",applyFilters));
+</script>
+</body>
+</html>
